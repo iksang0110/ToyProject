@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실시간 한국어-영어 번역기</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  #koreanInput { width: 100%; font-size: 18px; padding: 10px; margin-bottom: 10px; }
+  #suggestionsBox { position: absolute; width: 100%; background: white; text-align: left; padding: 10px; box-sizing: border-box; display: none; }
+  .suggestion-item { display: block; margin: 5px 0; padding: 5px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
+  #sentenceTranslation { background-color: #f0f0f0; padding: 10px; margin-top: 50px; }
+</style>
+</head>
+<body>
+
+<div id="translationApp">
+  <input type="text" id="koreanInput" placeholder="한국어로 타이핑하세요" autocomplete="off"/>
+  <div id="suggestionsBox"></div>
+  <div id="sentenceTranslation"></div>
+</div>
+
+<script>
+  const API_URL = 'https://libretranslate.de/translate';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const koreanInput = document.getElementById('koreanInput');
+    const suggestionsBox = document.getElementById('suggestionsBox');
+    const sentenceTranslation = document.getElementById('sentenceTranslation');
+
+    koreanInput.addEventListener('input', function() {
+      const text = koreanInput.value.trim();
+      if (text === '') {
+        suggestionsBox.style.display = 'none';
+        sentenceTranslation.textContent = '';
+        return;
+      }
+
+      fetch(`${API_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          q: text,
+          source: 'ko',
+          target: 'en',
+          format: 'text'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        sentenceTranslation.textContent = data.translatedText;
+        suggestionsBox.style.display = 'block';
+        suggestionsBox.innerHTML = `<div class="suggestion-item">${data.translatedText}</div>`;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

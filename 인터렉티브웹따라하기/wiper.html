@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>한글 자음 와이퍼 효과</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0066cc; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = 'ＰＲＯＧＹＴＨＯ';
+        const particles = [];
+        let wiperAngle = 0;
+        let wiperSpeed = 0.025; // 와이퍼 속도를 절반으로 줄임
+
+        const wiperLength = canvas.height / 2;
+
+        class Particle {
+            constructor(x, y, char) {
+                this.x = x;
+                this.y = y;
+                this.char = char;
+                this.size = 20;
+                this.speed = Math.random() * 1 + 0.5; // 떨어지는 속도
+            }
+
+            update() {
+                this.y += this.speed; // 계속 아래로 떨어짐
+
+                const wiperTipX = canvas.width / 2 + Math.cos(wiperAngle) * wiperLength;
+                if (Math.abs(this.x - wiperTipX) < 20 && this.y > canvas.height - wiperLength) {
+                    this.x += Math.cos(wiperAngle) * 10;
+                    this.y += Math.sin(Math.abs(wiperAngle)) * 10;
+                }
+
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'white';
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillText(this.char, this.x, this.y);
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const char = letters[Math.floor(Math.random() * letters.length)];
+                particles.push(new Particle(x, y, char));
+            }
+        }
+
+        function drawWiper() {
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height);
+            ctx.rotate(-wiperAngle);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(-5, -wiperLength, 10, wiperLength);
+            ctx.restore();
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 102, 204, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            drawWiper();
+
+            wiperAngle += wiperSpeed;
+            if (wiperAngle > Math.PI / 3 || wiperAngle < -Math.PI / 3) {
+                wiperSpeed *= -1;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
